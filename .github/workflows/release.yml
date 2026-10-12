@@ -3,6 +3,11 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to publish, for example v0.1.0
+        required: true
 
 permissions:
   contents: read
@@ -10,18 +15,32 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.4.3"
       - run: bun install --frozen-lockfile
       - name: Tag matches package version
-        run: test "v$(bun -p "require('./package.json').version")" = "${GITHUB_REF_NAME}"
+        run: test "v$(bun -p "require('./package.json').version")" = "${RELEASE_TAG}"
       - run: bun run build
       - run: bun run verify
-      - name: Authenticate to npm
-        run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+      - name: Check npm token
+        run: |
+          test -n "${NPM_TOKEN}" || { echo "NPM_TOKEN secret is missing or empty"; exit 1; }
+          code=$(curl -sS -o whoami.json -w '%{http_code}' -H "Authorization: Bearer ${NPM_TOKEN}" https://registry.npmjs.org/-/whoami)
+          echo "npm whoami status: ${code}"
+          echo "npm user: $(bun -p "const j=require('./whoami.json'); j.username ?? j.error ?? ''")"
+          rm whoami.json
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - run: bun publish --access public
+      - name: Authenticate to npm
+        run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: timeout 120 bun publish --access public < /dev/null
