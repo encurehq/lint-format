@@ -1,11 +1,10 @@
 import { describe, expect, test } from "bun:test";
 
-import { config } from "../src/index.ts";
-import { formatConfig } from "../src/oxfmt.ts";
+import { format, lint } from "../src/index.ts";
 
-describe("config", () => {
+describe("lint", () => {
 	test("react and nextjs presets add their plugins and rules", () => {
-		const result = config({ react: true, nextjs: true });
+		const result = lint({ react: true, nextjs: true });
 
 		expect(result.plugins).toContain("react");
 		expect(result.plugins).toContain("jsx-a11y");
@@ -14,14 +13,14 @@ describe("config", () => {
 	});
 
 	test("react: false drops react, a11y and next rules", () => {
-		const result = config({ react: false });
+		const result = lint({ react: false });
 
 		expect(result.plugins).not.toContain("react");
 		expect(Object.keys(result.rules ?? {}).some((name) => name.startsWith("react/"))).toBe(false);
 	});
 
 	test("overrides merge rules by key and concatenate arrays", () => {
-		const result = config({}, { rules: { "no-console": "off" }, ignorePatterns: ["**/gen/**"] });
+		const result = lint({}, { rules: { "no-console": "off" }, ignorePatterns: ["**/gen/**"] });
 
 		expect(result.rules?.["no-console"]).toBe("off");
 		expect(result.rules?.["no-var"]).toBe("error");
@@ -30,16 +29,16 @@ describe("config", () => {
 	});
 
 	test("typeAware: false disables type checking", () => {
-		expect(config({ typeAware: false }).options).toMatchObject({
+		expect(lint({ typeAware: false }).options).toMatchObject({
 			typeAware: false,
 			typeCheck: false,
 		});
 	});
 });
 
-describe("formatConfig", () => {
+describe("format", () => {
 	test("keeps tailwind sorting functions and merges a stylesheet override", () => {
-		const result = formatConfig({ sortTailwindcss: { stylesheet: "./globals.css" } });
+		const result = format({ sortTailwindcss: { stylesheet: "./globals.css" } });
 
 		expect(result.sortTailwindcss).toMatchObject({
 			functions: ["cn", "clsx", "cva", "tw"],

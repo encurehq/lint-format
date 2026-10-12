@@ -1,6 +1,6 @@
-import { defineConfig, type OxfmtConfig } from "oxfmt";
-
 import { mergeDeep } from "./merge.ts";
+
+import type { OxfmtConfig } from "oxfmt";
 
 const baseIgnorePatterns = [
 	"**/node_modules/**",
@@ -14,14 +14,16 @@ const baseIgnorePatterns = [
 	"**/bun.lock",
 ];
 
+export type FormatOverride = OxfmtConfig;
+
 /**
  * Builds the Encure oxfmt configuration.
  *
  * Tailwind class sorting is enabled for `cn`, `clsx`, `cva` and `tw`; pass `sortTailwindcss: { stylesheet }`
  * as an override so it resolves your project's theme.
  */
-export function formatConfig(...overrides: OxfmtConfig[]): OxfmtConfig {
-	const preset = defineConfig({
+export function format(...overrides: FormatOverride[]): OxfmtConfig {
+	const preset = {
 		printWidth: 100,
 		tabWidth: 2,
 		useTabs: true,
@@ -55,7 +57,7 @@ export function formatConfig(...overrides: OxfmtConfig[]): OxfmtConfig {
 			functions: ["cn", "clsx", "cva", "tw"],
 		},
 		ignorePatterns: baseIgnorePatterns,
-	});
+	} satisfies OxfmtConfig;
 
-	return mergeDeep(preset, ...overrides);
+	return mergeDeep<OxfmtConfig>(preset, ...overrides);
 }

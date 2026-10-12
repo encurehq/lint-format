@@ -14,16 +14,16 @@ bun add -d @encure/lint-format oxlint oxfmt oxlint-tsgolint
 
 ```ts
 // oxlint.config.ts
-import { config } from "@encure/lint-format";
+import { lint } from "@encure/lint-format";
 
-export default config({ nextjs: true });
+export default lint({ nextjs: true });
 ```
 
 ```ts
 // oxfmt.config.ts
-import { formatConfig } from "@encure/lint-format/oxfmt";
+import { format } from "@encure/lint-format";
 
-export default formatConfig({
+export default format({
 	sortTailwindcss: { stylesheet: "./src/globals.css" },
 });
 ```
@@ -40,7 +40,7 @@ export default formatConfig({
 
 ## Options
 
-`config(options?, ...overrides)`
+`lint(options?, ...overrides)`
 
 | Option      | Default | Effect                                                                  |
 | ----------- | ------- | ----------------------------------------------------------------------- |
@@ -51,7 +51,7 @@ export default formatConfig({
 Overrides are plain oxlint config objects. Rules merge by key, so you change one rule without redefining the rest, and `plugins` and `ignorePatterns` concatenate:
 
 ```ts
-export default config(
+export default lint(
 	{ nextjs: true },
 	{
 		rules: { "no-console": "off" },
@@ -60,7 +60,7 @@ export default config(
 );
 ```
 
-`formatConfig(...overrides)` takes oxfmt config objects and merges them the same way. Pass `sortTailwindcss.stylesheet` yourself: it points at your project's theme, so it has no default.
+`format(...overrides)` takes oxfmt config objects and merges them the same way. Pass `sortTailwindcss.stylesheet` yourself: it points at your project's theme, so it has no default.
 
 ## Organization rules
 
