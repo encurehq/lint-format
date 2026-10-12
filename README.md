@@ -77,10 +77,12 @@ The workflow needs an npm token with publish rights on the `@encure` scope, stor
 
 ## Development
 
+Requires Bun 1.4.3 or newer: type checking runs through the built-in `bun check`. The aggregate script is `verify`, not `check`, because a `check` script in `package.json` would shadow the built-in command.
+
 ```bash
 bun install
 bun run build
-bun run check   # lint, format check, typecheck, test
+bun run verify   # lint, format check, `bun check` (types), test
 ```
 
 The repo lints and formats itself with its own presets.
