@@ -1,3 +1,3 @@
-import { config } from "./src/index.ts";
+import { lint } from "./src/index.ts";
 
-export default config({ react: false }, { ignorePatterns: ["**/test/fixtures/**"] });
+export default lint({ react: false }, { ignorePatterns: ["**/test/fixtures/**"] });

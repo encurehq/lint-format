@@ -1,3 +1,3 @@
-import { formatConfig } from "./src/oxfmt.ts";
+import { format } from "./src/index.ts";
 
-export default formatConfig({ ignorePatterns: [".changeset/**", "**/test/fixtures/**"] });
+export default format({ ignorePatterns: ["**/test/fixtures/**"] });

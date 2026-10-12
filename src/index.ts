@@ -1,12 +1,12 @@
-import { defineConfig, type OxlintConfig } from "oxlint";
-
 import { mergeDeep } from "./merge.ts";
 import { a11yRules } from "./rules/a11y.ts";
 import { baseRules } from "./rules/base.ts";
 import { nextjsRules } from "./rules/nextjs.ts";
 import { reactRules } from "./rules/react.ts";
 
-export interface ConfigOptions {
+import type { OxlintConfig } from "oxlint";
+
+export interface LintOptions {
 	/** React, hooks and JSX accessibility rules. Defaults to `true`. */
 	react?: boolean;
 	/** Next.js rules. Defaults to `false`. */
@@ -34,7 +34,7 @@ const baseIgnorePatterns = [
  *
  * Overrides merge over the preset: rules merge by key, `plugins` and `ignorePatterns` concatenate.
  */
-export function config(options: ConfigOptions = {}, ...overrides: OxlintConfig[]): OxlintConfig {
+export function lint(options: LintOptions = {}, ...overrides: OxlintConfig[]): OxlintConfig {
 	const { react = true, nextjs = false, typeAware = true } = options;
 
 	const plugins: string[] = [...basePlugins];
@@ -50,7 +50,7 @@ export function config(options: ConfigOptions = {}, ...overrides: OxlintConfig[]
 		rules = { ...rules, ...nextjsRules };
 	}
 
-	const preset = defineConfig({
+	const preset = {
 		categories: {
 			correctness: "error",
 			perf: "warn",
@@ -70,9 +70,11 @@ export function config(options: ConfigOptions = {}, ...overrides: OxlintConfig[]
 			node: true,
 			browser: true,
 		},
-	});
+	} satisfies OxlintConfig;
 
-	return mergeDeep(preset, ...overrides);
+	return mergeDeep<OxlintConfig>(preset, ...overrides);
 }
 
+export { format } from "./format.ts";
+export type { FormatOverride } from "./format.ts";
 export { mergeDeep } from "./merge.ts";
