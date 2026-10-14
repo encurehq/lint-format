@@ -1,6 +1,7 @@
 import { mergeDeep } from "./merge.ts";
 import { a11yRules } from "./rules/a11y.ts";
 import { baseRules } from "./rules/base.ts";
+import { designSystemRules, resolveDesignSystemPlugin } from "./rules/design-system.ts";
 import { nextjsRules } from "./rules/nextjs.ts";
 import { reactRules } from "./rules/react.ts";
 
@@ -13,6 +14,8 @@ export interface LintOptions {
 	nextjs?: boolean;
 	/** Type-aware rules and type checking; needs `oxlint-tsgolint` installed. Defaults to `true`. */
 	typeAware?: boolean;
+	/** Design-system rules from `@shadcn/lint`; needs `@shadcn/lint` installed and oxlint 1.80 or newer. Defaults to `false`. */
+	designSystem?: boolean;
 }
 
 const basePlugins = ["import", "eslint", "typescript", "unicorn", "oxc", "jsdoc"] as const;
@@ -35,7 +38,7 @@ const baseIgnorePatterns = [
  * Overrides merge over the preset: rules merge by key, `plugins` and `ignorePatterns` concatenate.
  */
 export function lint(options: LintOptions = {}, ...overrides: OxlintConfig[]): OxlintConfig {
-	const { react = true, nextjs = false, typeAware = true } = options;
+	const { react = true, nextjs = false, typeAware = true, designSystem = false } = options;
 
 	const plugins: string[] = [...basePlugins];
 	let rules: NonNullable<OxlintConfig["rules"]> = { ...baseRules };
@@ -48,6 +51,10 @@ export function lint(options: LintOptions = {}, ...overrides: OxlintConfig[]): O
 	if (nextjs) {
 		plugins.push("nextjs");
 		rules = { ...rules, ...nextjsRules };
+	}
+
+	if (designSystem) {
+		rules = { ...rules, ...designSystemRules };
 	}
 
 	const preset = {
@@ -63,6 +70,7 @@ export function lint(options: LintOptions = {}, ...overrides: OxlintConfig[]): O
 			reportUnusedDisableDirectives: "warn",
 		},
 		plugins: plugins as NonNullable<OxlintConfig["plugins"]>,
+		...(designSystem && { jsPlugins: [resolveDesignSystemPlugin()] }),
 		rules,
 		ignorePatterns: baseIgnorePatterns,
 		env: {

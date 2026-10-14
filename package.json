@@ -45,19 +45,24 @@
 		"verify": "bun run lint && bun run format:check && bun check && bun run test"
 	},
 	"devDependencies": {
+		"@shadcn/lint": "^0.2.1",
 		"@types/bun": "^1.4.3",
 		"oxfmt": "^0.60.0",
-		"oxlint": "^1.75.0",
+		"oxlint": "^1.80.0",
 		"oxlint-tsgolint": "^0.21.1",
 		"tsdown": "^0.23.1",
 		"typescript": "^7.0.2"
 	},
 	"peerDependencies": {
+		"@shadcn/lint": "^0.2.1",
 		"oxfmt": ">=0.60.0",
 		"oxlint": ">=1.75.0",
 		"oxlint-tsgolint": ">=0.21.0"
 	},
 	"peerDependenciesMeta": {
+		"@shadcn/lint": {
+			"optional": true
+		},
 		"oxfmt": {
 			"optional": true
 		},

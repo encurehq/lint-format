@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test";
 
 import { format, lint } from "../src/index.ts";
+import { resolveDesignSystemPlugin } from "../src/rules/design-system.ts";
+
+function failToResolve(): never {
+	throw new Error("Cannot find package");
+}
 
 describe("lint", () => {
 	test("react and nextjs presets add their plugins and rules", () => {
@@ -33,6 +38,44 @@ describe("lint", () => {
 			typeAware: false,
 			typeCheck: false,
 		});
+	});
+});
+
+describe("lint designSystem", () => {
+	test("is off by default: no JS plugin and no shadcn rules", () => {
+		const result = lint({});
+
+		expect(result.jsPlugins).toBeUndefined();
+		expect(Object.keys(result.rules ?? {}).some((name) => name.startsWith("shadcn/"))).toBe(false);
+	});
+
+	test("registers the resolved @shadcn/lint path and enables all six rules", () => {
+		const result = lint({ designSystem: true });
+
+		expect(result.jsPlugins).toEqual([
+			expect.stringMatching(/@shadcn[\\/]lint[\\/]dist[\\/]index\.js$/),
+		]);
+		expect(result.rules?.["shadcn/no-raw-colors"]).toEqual(["error", { scanAllStrings: true }]);
+		expect(result.rules?.["shadcn/no-restyle"]).toEqual(["error", { allow: ["layout"] }]);
+		expect(
+			Object.keys(result.rules ?? {}).filter((name) => name.startsWith("shadcn/")),
+		).toHaveLength(6);
+	});
+
+	test("overrides turn a design-system rule off and add their own plugin", () => {
+		const result = lint(
+			{ designSystem: true },
+			{ jsPlugins: ["./local-plugin.js"], rules: { "shadcn/no-restyle": "off" } },
+		);
+
+		expect(result.rules?.["shadcn/no-restyle"]).toBe("off");
+		expect(result.rules?.["shadcn/no-inline-styles"]).toBe("error");
+		expect(result.jsPlugins).toHaveLength(2);
+		expect(result.jsPlugins).toContain("./local-plugin.js");
+	});
+
+	test("a missing @shadcn/lint fails with an install hint", () => {
+		expect(() => resolveDesignSystemPlugin(failToResolve)).toThrow("bun add -d @shadcn/lint");
 	});
 });
 

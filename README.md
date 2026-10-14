@@ -42,11 +42,12 @@ export default format({
 
 `lint(options?, ...overrides)`
 
-| Option      | Default | Effect                                                                  |
-| ----------- | ------- | ----------------------------------------------------------------------- |
-| `react`     | `true`  | Adds the `react` and `jsx-a11y` plugins with their rules.               |
-| `nextjs`    | `false` | Adds the `nextjs` plugin with its rules.                                |
-| `typeAware` | `true`  | Enables type-aware rules and type checking. Requires `oxlint-tsgolint`. |
+| Option         | Default | Effect                                                                                                |
+| -------------- | ------- | ----------------------------------------------------------------------------------------------------- |
+| `react`        | `true`  | Adds the `react` and `jsx-a11y` plugins with their rules.                                             |
+| `nextjs`       | `false` | Adds the `nextjs` plugin with its rules.                                                              |
+| `typeAware`    | `true`  | Enables type-aware rules and type checking. Requires `oxlint-tsgolint`.                               |
+| `designSystem` | `false` | Enables the design-system rules from `@shadcn/lint`. See [Design-system rules](#design-system-rules). |
 
 Overrides are plain oxlint config objects. Rules merge by key, so you change one rule without redefining the rest, and `plugins` and `ignorePatterns` concatenate:
 
@@ -61,6 +62,42 @@ export default lint(
 ```
 
 `format(...overrides)` takes oxfmt config objects and merges them the same way. Pass `sortTailwindcss.stylesheet` yourself: it points at your project's theme, so it has no default.
+
+## Design-system rules
+
+`lint({ designSystem: true })` registers [`@shadcn/lint`](https://github.com/shadcn-ui/lint) and enables its six rules at `error`: `no-restyle` (layout classes only), `no-raw-colors` (with `scanAllStrings`), `no-arbitrary-values` (layout allowed), `no-inline-styles`, `no-unknown-classes` and `require-static-classes`. Each message names the component variant or theme token to use instead, which is what lets coding agents fix a violation in one pass.
+
+```bash
+bun add -d @shadcn/lint
+```
+
+Requirements and caveats:
+
+- oxlint 1.80 or newer. Oxlint's JS plugin API is alpha, so a newer oxlint can break the plugin; pin both.
+- Tailwind v4. Components and theme are discovered from your `components.json` (or `settings.shadcn`), so nothing about your design system lives in this package.
+- The rules apply to every file oxlint lints. Scope them to your UI code with `overrides`, and turn off `no-restyle`, `no-arbitrary-values` and `require-static-classes` inside the directory that defines your components (or ignore it), because components style themselves:
+
+```ts
+export default lint(
+	{ designSystem: true },
+	{
+		overrides: [
+			{
+				files: ["packages/email/**", "**/*.test.ts"],
+				rules: {
+					"shadcn/no-raw-colors": "off",
+					"shadcn/no-arbitrary-values": "off",
+					"shadcn/no-inline-styles": "off",
+					"shadcn/no-unknown-classes": "off",
+				},
+			},
+		],
+		settings: { shadcn: { note: "See DESIGN.md for design rules." } },
+	},
+);
+```
+
+Per-component policy (`contracts`), custom messages and `settings.shadcn.note` belong in the consuming repo. See the [@shadcn/lint docs](https://github.com/shadcn-ui/lint/blob/main/docs/rules.md).
 
 ## Organization rules
 
