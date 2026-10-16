@@ -1,6 +1,12 @@
 import { describe, expect, test } from "bun:test";
 
-import { format, lint } from "../src/index.ts";
+import { format } from "../src/format.ts";
+import { lint } from "../src/lint.ts";
+import { resolveShadcnPlugin } from "../src/rules/shadcn.ts";
+
+function failToResolve(): never {
+	throw new Error("Cannot find package");
+}
 
 describe("lint", () => {
 	test("react and nextjs presets add their plugins and rules", () => {
@@ -33,6 +39,48 @@ describe("lint", () => {
 			typeAware: false,
 			typeCheck: false,
 		});
+	});
+});
+
+describe("lint shadcn", () => {
+	test("is off by default: no JS plugin and no shadcn rules", () => {
+		const result = lint({});
+
+		expect(result.jsPlugins).toBeUndefined();
+		expect(Object.keys(result.rules ?? {}).some((name) => name.startsWith("shadcn/"))).toBe(false);
+	});
+
+	test("registers the resolved @shadcn/lint path and enables all six rules", () => {
+		const result = lint({ shadcn: true });
+
+		expect(result.jsPlugins).toEqual([
+			expect.stringMatching(/@shadcn[\\/]lint[\\/]dist[\\/]index\.js$/),
+		]);
+		expect(result.rules?.["shadcn/no-raw-colors"]).toEqual(["warn", { scanAllStrings: true }]);
+		expect(result.rules?.["shadcn/no-arbitrary-values"]).toEqual([
+			"error",
+			{ allow: ["layout"], scanAllStrings: true },
+		]);
+		expect(result.rules?.["shadcn/no-restyle"]).toEqual(["error", { allow: ["layout"] }]);
+		expect(
+			Object.keys(result.rules ?? {}).filter((name) => name.startsWith("shadcn/")),
+		).toHaveLength(6);
+	});
+
+	test("overrides turn a shadcn rule off and add their own plugin", () => {
+		const result = lint(
+			{ shadcn: true },
+			{ jsPlugins: ["./local-plugin.js"], rules: { "shadcn/no-restyle": "off" } },
+		);
+
+		expect(result.rules?.["shadcn/no-restyle"]).toBe("off");
+		expect(result.rules?.["shadcn/no-inline-styles"]).toBe("error");
+		expect(result.jsPlugins).toHaveLength(2);
+		expect(result.jsPlugins).toContain("./local-plugin.js");
+	});
+
+	test("a missing @shadcn/lint fails with an install hint", () => {
+		expect(() => resolveShadcnPlugin(failToResolve)).toThrow("bun add -d @shadcn/lint");
 	});
 });
 

@@ -61,3 +61,5 @@ export function format(...overrides: FormatOverride[]): OxfmtConfig {
 
 	return mergeDeep<OxfmtConfig>(preset, ...overrides);
 }
+
+export { mergeDeep } from "./merge.ts";

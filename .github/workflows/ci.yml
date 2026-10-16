@@ -2,6 +2,8 @@ name: CI
 
 on:
   pull_request:
+  # The Release workflow dispatches this on the release PR branch: PRs opened with GITHUB_TOKEN start no pull_request runs.
+  workflow_dispatch:
   push:
     branches: [main]
 

@@ -24,9 +24,13 @@
 	"type": "module",
 	"sideEffects": false,
 	"exports": {
-		".": {
-			"types": "./dist/index.d.mts",
-			"default": "./dist/index.mjs"
+		"./lint": {
+			"types": "./dist/lint.d.mts",
+			"default": "./dist/lint.mjs"
+		},
+		"./format": {
+			"types": "./dist/format.d.mts",
+			"default": "./dist/format.mjs"
 		},
 		"./package.json": "./package.json"
 	},
@@ -45,19 +49,24 @@
 		"verify": "bun run lint && bun run format:check && bun check && bun run test"
 	},
 	"devDependencies": {
+		"@shadcn/lint": "^0.2.1",
 		"@types/bun": "^1.4.3",
 		"oxfmt": "^0.60.0",
-		"oxlint": "^1.75.0",
+		"oxlint": "^1.80.0",
 		"oxlint-tsgolint": "^0.21.1",
 		"tsdown": "^0.23.1",
 		"typescript": "^7.0.2"
 	},
 	"peerDependencies": {
+		"@shadcn/lint": "^0.2.1",
 		"oxfmt": ">=0.60.0",
 		"oxlint": ">=1.75.0",
 		"oxlint-tsgolint": ">=0.21.0"
 	},
 	"peerDependenciesMeta": {
+		"@shadcn/lint": {
+			"optional": true
+		},
 		"oxfmt": {
 			"optional": true
 		},
