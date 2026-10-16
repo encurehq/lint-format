@@ -107,11 +107,18 @@ Per-component policy (`contracts`), custom messages and `settings.shadcn.note` b
 
 ## Releasing
 
-Releases are cut from tags and published with Bun.
+Releases are automated with [release-please](https://github.com/googleapis/release-please) and published with Bun.
 
-1. `bun pm version <patch|minor|major>` bumps `package.json` and creates the `v*` tag.
-2. `git push --follow-tags` runs the release workflow, which checks the tag against `package.json`, builds, checks, and runs `bun publish --access public`.
+1. Merge pull requests into `main` with a [Conventional Commits](https://www.conventionalcommits.org) title (`fix:`, `feat:`, `feat!:`). Squash merges keep one commit per PR.
+2. On each push to `main`, release-please opens or updates a release PR that bumps `package.json` and `.release-please-manifest.json` and writes `CHANGELOG.md`. Before 1.0, `feat:` and breaking changes bump the minor version and `fix:` bumps the patch.
+3. Merging the release PR tags `v<version>`, creates the GitHub release, and publishes: the workflow checks the tag against `package.json`, builds, runs `verify`, and runs `bun publish --access public`.
 
-The workflow needs an npm token with publish rights on the `@encure` scope, stored as the repository secret `NPM_TOKEN`.
+To publish an existing tag again, run the Release workflow by hand with that tag.
+
+Repository setup:
+
+- `NPM_TOKEN`: an npm token with publish rights on the `@encure` scope.
+- Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests" must be on.
+- `RELEASE_PLEASE_TOKEN` (optional): a fine-grained token or GitHub App token with contents and pull request write access. Without it the release PR is opened with `GITHUB_TOKEN`, which does not start CI on that PR, so a required status check on `main` would block merging it.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) to work on this package.
