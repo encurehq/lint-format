@@ -7,7 +7,7 @@ export const designSystemRules = {
 	"shadcn/no-unknown-classes": "error",
 	"shadcn/require-static-classes": "error",
 	"shadcn/no-arbitrary-values": ["error", { allow: ["layout"] }],
-	"shadcn/no-raw-colors": ["error", { scanAllStrings: true }],
+	"shadcn/no-raw-colors": ["warn", { scanAllStrings: true }],
 	"shadcn/no-inline-styles": "error",
 	"shadcn/no-restyle": ["error", { allow: ["layout"] }],
 } satisfies NonNullable<OxlintConfig["rules"]>;

@@ -55,7 +55,7 @@ describe("lint designSystem", () => {
 		expect(result.jsPlugins).toEqual([
 			expect.stringMatching(/@shadcn[\\/]lint[\\/]dist[\\/]index\.js$/),
 		]);
-		expect(result.rules?.["shadcn/no-raw-colors"]).toEqual(["error", { scanAllStrings: true }]);
+		expect(result.rules?.["shadcn/no-raw-colors"]).toEqual(["warn", { scanAllStrings: true }]);
 		expect(result.rules?.["shadcn/no-restyle"]).toEqual(["error", { allow: ["layout"] }]);
 		expect(
 			Object.keys(result.rules ?? {}).filter((name) => name.startsWith("shadcn/")),

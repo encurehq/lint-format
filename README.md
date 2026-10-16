@@ -65,7 +65,7 @@ export default lint(
 
 ## Design-system rules
 
-`lint({ designSystem: true })` registers [`@shadcn/lint`](https://github.com/shadcn-ui/lint) and enables its six rules at `error`: `no-restyle` (layout classes only), `no-raw-colors` (with `scanAllStrings`), `no-arbitrary-values` (layout allowed), `no-inline-styles`, `no-unknown-classes` and `require-static-classes`. Each message names the component variant or theme token to use instead, which is what lets coding agents fix a violation in one pass.
+`lint({ designSystem: true })` registers [`@shadcn/lint`](https://github.com/shadcn-ui/lint) and enables its six rules: `no-raw-colors` (with `scanAllStrings`) at `warn`, and at `error` `no-restyle` (layout classes only), `no-arbitrary-values` (layout allowed), `no-inline-styles`, `no-unknown-classes` and `require-static-classes`. Each message names the component variant or theme token to use instead, which is what lets coding agents fix a violation in one pass.
 
 ```bash
 bun add -d @shadcn/lint
