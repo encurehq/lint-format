@@ -35,7 +35,7 @@ jobs:
         run: gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref "$RELEASE_BRANCH"
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_BRANCH: ${{ fromJSON(steps.release.outputs.pr || '{}').headBranchName || 'release-please--branches--main' }}
+          RELEASE_BRANCH: ${{ fromJSON(steps.release.outputs.pr || '{}').headBranchName || 'release-please--branches--main--components--lint-format' }}
 
   # Publishing runs here, not on the tag push: a tag created with GITHUB_TOKEN does not trigger other workflows.
   publish:
