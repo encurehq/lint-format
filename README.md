@@ -14,19 +14,21 @@ bun add -d @encure/lint-format oxlint oxfmt oxlint-tsgolint
 
 ```ts
 // oxlint.config.ts
-import { lint } from "@encure/lint-format";
+import { lint } from "@encure/lint-format/lint";
 
 export default lint({ nextjs: true });
 ```
 
 ```ts
 // oxfmt.config.ts
-import { format } from "@encure/lint-format";
+import { format } from "@encure/lint-format/format";
 
 export default format({
 	sortTailwindcss: { stylesheet: "./src/globals.css" },
 });
 ```
+
+There is no root export: `lint` comes from `/lint` and `format` from `/format`, and neither entry loads the other tool, so a project can install only `oxlint` or only `oxfmt`.
 
 ```json
 {
@@ -42,14 +44,14 @@ export default format({
 
 `lint(options?, ...overrides)`
 
-| Option         | Default | Effect                                                                                                |
-| -------------- | ------- | ----------------------------------------------------------------------------------------------------- |
-| `react`        | `true`  | Adds the `react` and `jsx-a11y` plugins with their rules.                                             |
-| `nextjs`       | `false` | Adds the `nextjs` plugin with its rules.                                                              |
-| `typeAware`    | `true`  | Enables type-aware rules and type checking. Requires `oxlint-tsgolint`.                               |
-| `designSystem` | `false` | Enables the design-system rules from `@shadcn/lint`. See [Design-system rules](#design-system-rules). |
+| Option      | Default | Effect                                                                    |
+| ----------- | ------- | ------------------------------------------------------------------------- |
+| `react`     | `true`  | Adds the `react` and `jsx-a11y` plugins with their rules.                 |
+| `nextjs`    | `false` | Adds the `nextjs` plugin with its rules.                                  |
+| `typeAware` | `true`  | Enables type-aware rules and type checking. Requires `oxlint-tsgolint`.   |
+| `shadcn`    | `false` | Enables the rules from `@shadcn/lint`. See [shadcn rules](#shadcn-rules). |
 
-Overrides are plain oxlint config objects. Rules merge by key, so you change one rule without redefining the rest, and `plugins` and `ignorePatterns` concatenate:
+Overrides are plain oxlint config objects. Rules merge by key, so you change one rule without redefining the rest, and arrays such as `plugins` and `ignorePatterns` concatenate:
 
 ```ts
 export default lint(
@@ -61,11 +63,15 @@ export default lint(
 );
 ```
 
+Because arrays concatenate, a top-level rule entry with options (`["error", { ... }]`) is appended to the preset's entry instead of replacing it when the preset already sets options for that rule. Change such a rule's options inside an `overrides` block; a plain severity (`"off"`, `"warn"`) at the top level is fine.
+
+The preset sets `maxWarnings: 10`: more than 10 warnings fails the run, so `warn` rules still gate CI once they pile up.
+
 `format(...overrides)` takes oxfmt config objects and merges them the same way. Pass `sortTailwindcss.stylesheet` yourself: it points at your project's theme, so it has no default.
 
-## Design-system rules
+## shadcn rules
 
-`lint({ designSystem: true })` registers [`@shadcn/lint`](https://github.com/shadcn-ui/lint) and enables its six rules: `no-raw-colors` (with `scanAllStrings`) at `warn`, and at `error` `no-restyle` (layout classes only), `no-arbitrary-values` (layout allowed), `no-inline-styles`, `no-unknown-classes` and `require-static-classes`. Each message names the component variant or theme token to use instead, which is what lets coding agents fix a violation in one pass.
+`lint({ shadcn: true })` registers [`@shadcn/lint`](https://github.com/shadcn-ui/lint) and enables its six rules: `no-raw-colors` (with `scanAllStrings`) at `warn`, and at `error` `no-restyle` (layout classes only), `no-arbitrary-values` (layout allowed, with `scanAllStrings`), `no-inline-styles`, `no-unknown-classes` and `require-static-classes`. Each message names the component variant or theme token to use instead, which is what lets coding agents fix a violation in one pass.
 
 ```bash
 bun add -d @shadcn/lint
@@ -79,7 +85,7 @@ Requirements and caveats:
 
 ```ts
 export default lint(
-	{ designSystem: true },
+	{ shadcn: true },
 	{
 		overrides: [
 			{
@@ -99,10 +105,6 @@ export default lint(
 
 Per-component policy (`contracts`), custom messages and `settings.shadcn.note` belong in the consuming repo. See the [@shadcn/lint docs](https://github.com/shadcn-ui/lint/blob/main/docs/rules.md).
 
-## Organization rules
-
-The preset enforces Encure conventions, not only generic style. For example, `react/forbid-elements` flags `<Dialog>`, `<Popover>` and `<Sheet>` in favor of `<ResponsiveDialog>`, `<ResponsivePopover>` and `<ResponsiveSheet>`, and `unicorn/filename-case` requires kebab-case file names.
-
 ## Releasing
 
 Releases are cut from tags and published with Bun.
@@ -112,14 +114,4 @@ Releases are cut from tags and published with Bun.
 
 The workflow needs an npm token with publish rights on the `@encure` scope, stored as the repository secret `NPM_TOKEN`.
 
-## Development
-
-Requires Bun 1.4.3 or newer: type checking runs through the built-in `bun check`. The aggregate script is `verify`, not `check`, because a `check` script in `package.json` would shadow the built-in command.
-
-```bash
-bun install
-bun run build
-bun run verify   # lint, format check, `bun check` (types), test
-```
-
-The repo lints and formats itself with its own presets.
+See [CONTRIBUTING.md](CONTRIBUTING.md) to work on this package.
