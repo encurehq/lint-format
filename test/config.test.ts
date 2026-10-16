@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
 
-import { format, lint } from "../src/index.ts";
-import { resolveDesignSystemPlugin } from "../src/rules/design-system.ts";
+import { format } from "../src/format.ts";
+import { lint } from "../src/lint.ts";
+import { resolveShadcnPlugin } from "../src/rules/shadcn.ts";
 
 function failToResolve(): never {
 	throw new Error("Cannot find package");
@@ -41,7 +42,7 @@ describe("lint", () => {
 	});
 });
 
-describe("lint designSystem", () => {
+describe("lint shadcn", () => {
 	test("is off by default: no JS plugin and no shadcn rules", () => {
 		const result = lint({});
 
@@ -50,21 +51,25 @@ describe("lint designSystem", () => {
 	});
 
 	test("registers the resolved @shadcn/lint path and enables all six rules", () => {
-		const result = lint({ designSystem: true });
+		const result = lint({ shadcn: true });
 
 		expect(result.jsPlugins).toEqual([
 			expect.stringMatching(/@shadcn[\\/]lint[\\/]dist[\\/]index\.js$/),
 		]);
 		expect(result.rules?.["shadcn/no-raw-colors"]).toEqual(["warn", { scanAllStrings: true }]);
+		expect(result.rules?.["shadcn/no-arbitrary-values"]).toEqual([
+			"error",
+			{ allow: ["layout"], scanAllStrings: true },
+		]);
 		expect(result.rules?.["shadcn/no-restyle"]).toEqual(["error", { allow: ["layout"] }]);
 		expect(
 			Object.keys(result.rules ?? {}).filter((name) => name.startsWith("shadcn/")),
 		).toHaveLength(6);
 	});
 
-	test("overrides turn a design-system rule off and add their own plugin", () => {
+	test("overrides turn a shadcn rule off and add their own plugin", () => {
 		const result = lint(
-			{ designSystem: true },
+			{ shadcn: true },
 			{ jsPlugins: ["./local-plugin.js"], rules: { "shadcn/no-restyle": "off" } },
 		);
 
@@ -75,7 +80,7 @@ describe("lint designSystem", () => {
 	});
 
 	test("a missing @shadcn/lint fails with an install hint", () => {
-		expect(() => resolveDesignSystemPlugin(failToResolve)).toThrow("bun add -d @shadcn/lint");
+		expect(() => resolveShadcnPlugin(failToResolve)).toThrow("bun add -d @shadcn/lint");
 	});
 });
 

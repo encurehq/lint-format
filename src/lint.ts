@@ -1,9 +1,9 @@
 import { mergeDeep } from "./merge.ts";
 import { a11yRules } from "./rules/a11y.ts";
 import { baseRules } from "./rules/base.ts";
-import { designSystemRules, resolveDesignSystemPlugin } from "./rules/design-system.ts";
 import { nextjsRules } from "./rules/nextjs.ts";
 import { reactRules } from "./rules/react.ts";
+import { shadcnRules, resolveShadcnPlugin } from "./rules/shadcn.ts";
 
 import type { OxlintConfig } from "oxlint";
 
@@ -14,8 +14,8 @@ export interface LintOptions {
 	nextjs?: boolean;
 	/** Type-aware rules and type checking; needs `oxlint-tsgolint` installed. Defaults to `true`. */
 	typeAware?: boolean;
-	/** Design-system rules from `@shadcn/lint`; needs `@shadcn/lint` installed and oxlint 1.80 or newer. Defaults to `false`. */
-	designSystem?: boolean;
+	/** Rules from `@shadcn/lint`; needs `@shadcn/lint` installed and oxlint 1.80 or newer. Defaults to `false`. */
+	shadcn?: boolean;
 }
 
 const basePlugins = ["import", "eslint", "typescript", "unicorn", "oxc", "jsdoc"] as const;
@@ -38,7 +38,7 @@ const baseIgnorePatterns = [
  * Overrides merge over the preset: rules merge by key, `plugins` and `ignorePatterns` concatenate.
  */
 export function lint(options: LintOptions = {}, ...overrides: OxlintConfig[]): OxlintConfig {
-	const { react = true, nextjs = false, typeAware = true, designSystem = false } = options;
+	const { react = true, nextjs = false, typeAware = true, shadcn = false } = options;
 
 	const plugins: string[] = [...basePlugins];
 	let rules: NonNullable<OxlintConfig["rules"]> = { ...baseRules };
@@ -53,8 +53,8 @@ export function lint(options: LintOptions = {}, ...overrides: OxlintConfig[]): O
 		rules = { ...rules, ...nextjsRules };
 	}
 
-	if (designSystem) {
-		rules = { ...rules, ...designSystemRules };
+	if (shadcn) {
+		rules = { ...rules, ...shadcnRules };
 	}
 
 	const preset = {
@@ -70,7 +70,7 @@ export function lint(options: LintOptions = {}, ...overrides: OxlintConfig[]): O
 			reportUnusedDisableDirectives: "warn",
 		},
 		plugins: plugins as NonNullable<OxlintConfig["plugins"]>,
-		...(designSystem && { jsPlugins: [resolveDesignSystemPlugin()] }),
+		...(shadcn && { jsPlugins: [resolveShadcnPlugin()] }),
 		rules,
 		ignorePatterns: baseIgnorePatterns,
 		env: {
@@ -83,6 +83,4 @@ export function lint(options: LintOptions = {}, ...overrides: OxlintConfig[]): O
 	return mergeDeep<OxlintConfig>(preset, ...overrides);
 }
 
-export { format } from "./format.ts";
-export type { FormatOverride } from "./format.ts";
 export { mergeDeep } from "./merge.ts";
