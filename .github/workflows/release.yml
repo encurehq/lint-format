@@ -17,6 +17,7 @@ jobs:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
+      actions: write
       contents: write
       pull-requests: write
     outputs:
@@ -26,10 +27,15 @@ jobs:
       - id: release
         uses: googleapis/release-please-action@v4
         with:
-          # A token other than GITHUB_TOKEN lets CI run on the release PR; see "Releasing" in README.md.
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+      # workflow_dispatch is the one trigger GITHUB_TOKEN may fire, so this is how the required check reaches the release PR.
+      - name: Run CI on the release PR
+        if: ${{ steps.release.outputs.prs_created == 'true' }}
+        run: gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref "$RELEASE_BRANCH"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_BRANCH: ${{ fromJSON(steps.release.outputs.pr || '{}').headBranchName || 'release-please--branches--main' }}
 
   # Publishing runs here, not on the tag push: a tag created with GITHUB_TOKEN does not trigger other workflows.
   publish:

@@ -119,6 +119,6 @@ Repository setup:
 
 - `NPM_TOKEN`: an npm token with publish rights on the `@encure` scope.
 - Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests" must be on.
-- `RELEASE_PLEASE_TOKEN` (optional): a fine-grained token or GitHub App token with contents and pull request write access. Without it the release PR is opened with `GITHUB_TOKEN`, which does not start CI on that PR, so a required status check on `main` would block merging it.
+- No other token is needed. A release PR opened with `GITHUB_TOKEN` starts no `pull_request` runs, so the Release workflow dispatches CI on the release branch itself; that run reports the `check` status the release PR needs when status checks are required on `main`.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) to work on this package.
